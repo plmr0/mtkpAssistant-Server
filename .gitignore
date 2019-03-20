@@ -271,17 +271,10 @@ __pycache__/
 *.lock
 
 *.iml
-.gradle
 /.gradle/5.1.1/gc.properties
 /.gradle/buildOutputCleanup/cache.properties
 /.gradle/vcs-1/gc.properties
 /.gradle/vcsWorkingDirs/gc.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 /out/production/classes/META-INF/scheduleMTKP-Server_main.kotlin_module
 *.xlsx
 
