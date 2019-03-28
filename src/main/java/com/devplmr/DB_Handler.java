@@ -4,6 +4,7 @@ import org.sqlite.JDBC;
 
 import java.io.File;
 import java.sql.*;
+import java.util.List;
 
 public class DB_Handler
 {
@@ -73,15 +74,18 @@ public class DB_Handler
 		}
 	}
 
-	public void insertGroups(String group_name)
+	public void insertGroups(List<String> groups)
 	{
 		String sql = "INSERT INTO groups(group_name) VALUES(?)";
 
 		try (Connection conn = this.connect();
 		     PreparedStatement preparedStatement = conn.prepareStatement(sql))
 		{
-			preparedStatement.setString(1, group_name);
-			preparedStatement.executeUpdate();
+			for (String group_name : groups)
+			{
+				preparedStatement.setString(1, group_name);
+				preparedStatement.executeUpdate();
+			}
 		}
 		catch (SQLException e)
 		{
