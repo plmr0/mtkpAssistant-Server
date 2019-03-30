@@ -16,18 +16,18 @@ public class XLSX_Parser
 {
 	public XLSX_Parser() throws IOException {}
 
+	private File scheduleFile = new File("МТКП_4.xlsx"); // todo automate pathname
+	private FileInputStream fis = new FileInputStream(scheduleFile);
+
+	private XSSFWorkbook workBook = new XSSFWorkbook (fis);
+
+	private XSSFSheet firstSheet = workBook.getSheetAt(0);
+
 	List<String> getGroups() throws IOException
 	{
 		List<String> groups = new ArrayList<>();
 
-		File myFile = new File(""); // todo automate pathname
-		FileInputStream fis = new FileInputStream(myFile);
-
-		XSSFWorkbook myWorkBook = new XSSFWorkbook (fis);
-
-		XSSFSheet mySheet = myWorkBook.getSheetAt(0);
-
-		Iterator<Row> rowIterator = mySheet.rowIterator();
+		Iterator<Row> rowIterator = firstSheet.rowIterator();
 
 		while (rowIterator.hasNext())
 		{
