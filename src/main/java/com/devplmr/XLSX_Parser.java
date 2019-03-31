@@ -73,6 +73,8 @@ public class XLSX_Parser
 						int subject = 0;
 						int day = 0;
 
+						boolean isFreeDay = false;
+
 						String currentSubject = "";
 						String lastSubject = "";
 
@@ -80,7 +82,10 @@ public class XLSX_Parser
 						{
 							if (firstSheet.getRow(i).getCell(cell.getColumnIndex()).toString().length() == 0)
 							{
-								currentSubject = "<Пустая пара>";
+								if (isFreeDay)
+									currentSubject = "Выходной";
+								else
+									currentSubject = "<Пустая пара>";
 							}
 							else
 							{
@@ -89,7 +94,13 @@ public class XLSX_Parser
 
 								if (!subjectCell.toString().toLowerCase().contains("вакансия"))
 								{
-									currentSubject = subjectCell.toString().replace("\n", "\\n") + " -- " + classCell.toString();
+									if (subjectCell.toString().toLowerCase().contains("самост") || isFreeDay)
+									{
+										isFreeDay = true;
+										currentSubject = "Выходной";
+									}
+									else
+										currentSubject = subjectCell.toString().replace("\n", "\\n") + " -- " + classCell.toString();
 								}
 								else {}
 							}
@@ -114,7 +125,11 @@ public class XLSX_Parser
 
 							lastSubject = currentSubject;
 
-							if (day % 12 == 0) System.out.println("----------------------------------------------");
+							if (day % 12 == 0)
+							{
+								System.out.println("----------------------------------------------");
+								isFreeDay = false;
+							}
 						}
 					}
 					else {}
