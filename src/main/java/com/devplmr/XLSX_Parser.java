@@ -70,23 +70,51 @@ public class XLSX_Parser
 						Cell subjectCell;
 						Cell classCell;
 
+						int subject = 0;
+						int day = 0;
+
+						String currentSubject = "";
+						String lastSubject = "";
+
 						for (int i = cell.getRowIndex() + 1; ; i++)
 						{
 							if (firstSheet.getRow(i).getCell(cell.getColumnIndex()).toString().length() == 0)
 							{
-								System.out.println("<Пустая пара>");
+								currentSubject = "<Пустая пара>";
 							}
 							else
 							{
 								subjectCell = firstSheet.getRow(i).getCell(cell.getColumnIndex());
 								classCell = firstSheet.getRow(i).getCell(cell.getColumnIndex() + 1);
 
-								if (!subjectCell.toString().contains("вакансия"))
+								if (!subjectCell.toString().toLowerCase().contains("вакансия"))
 								{
-									System.out.println(subjectCell.toString().replace('\n', '\t')+ " - " + classCell.toString());
+									currentSubject = subjectCell.toString().replace("\n", "\\n") + " -- " + classCell.toString();
 								}
 								else {}
 							}
+
+							subject++;
+							day++;
+
+							if (subject % 2 == 0)
+							{
+								if (currentSubject.startsWith(lastSubject.substring(0, 5)))
+								{
+									System.out.println(currentSubject);
+									System.out.println("---------------------");
+								}
+								else
+								{
+									System.out.println(lastSubject);
+									System.out.println(currentSubject);
+									System.out.println("---------------------");
+								}
+							}
+
+							lastSubject = currentSubject;
+
+							if (day % 12 == 0) System.out.println("----------------------------------------------");
 						}
 					}
 					else {}
