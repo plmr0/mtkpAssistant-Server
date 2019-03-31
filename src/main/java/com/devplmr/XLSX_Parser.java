@@ -14,13 +14,14 @@ import java.util.List;
 
 public class XLSX_Parser
 {
-	public XLSX_Parser() throws IOException {}
+	XLSX_Parser() throws IOException {}
+
+	private final int SUBJECTS_PER_DAY = 12;
+	private final int SUBJECTS_PER_WEEK = 72;
 
 	private File scheduleFile = new File("МТКП_4.xlsx"); // todo automate pathname
 	private FileInputStream fis = new FileInputStream(scheduleFile);
-
-	private XSSFWorkbook workBook = new XSSFWorkbook (fis);
-
+	private XSSFWorkbook workBook = new XSSFWorkbook(fis);
 	private XSSFSheet firstSheet = workBook.getSheetAt(0);
 
 	List<String> getGroups() throws IOException
@@ -43,7 +44,7 @@ public class XLSX_Parser
 						cell.getCellType() == Cell.CELL_TYPE_STRING     &&
 						cell.getStringCellValue().contains("-")         &&
 						cell.getStringCellValue().length() <= 6
-					)
+				   )
 				{
 					groups.add(cell.toString());
 				}
@@ -52,5 +53,49 @@ public class XLSX_Parser
 		return groups;
 	}
 
-	void getSchedule(String group) {} // todo function
+	void getSchedule(String group)
+	{
+		try
+		{
+			for (Row row : firstSheet)
+			{
+				Iterator<Cell> cellIterator = row.cellIterator();
+
+				while (cellIterator.hasNext())
+				{
+					Cell cell = cellIterator.next();
+
+					if (cell.toString().toLowerCase().contains(group.toLowerCase()))
+					{
+						Cell subjectCell;
+						Cell classCell;
+
+						for (int i = cell.getRowIndex() + 1; ; i++)
+						{
+							if (firstSheet.getRow(i).getCell(cell.getColumnIndex()).toString().length() == 0)
+							{
+								System.out.println("<Пустая пара>");
+							}
+							else
+							{
+								subjectCell = firstSheet.getRow(i).getCell(cell.getColumnIndex());
+								classCell = firstSheet.getRow(i).getCell(cell.getColumnIndex() + 1);
+
+								if (!subjectCell.toString().contains("вакансия"))
+								{
+									System.out.println(subjectCell.toString().replace('\n', '\t')+ " - " + classCell.toString());
+								}
+								else {}
+							}
+						}
+					}
+					else {}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+
+		}
+	}
 }
