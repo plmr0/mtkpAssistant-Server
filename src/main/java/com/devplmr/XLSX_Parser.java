@@ -8,14 +8,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class XLSX_Parser
 {
 	XLSX_Parser() throws IOException {}
 
+	private final int ACADEMIC_SUBJECT = 2;
 	private final int SUBJECTS_PER_DAY = 12;
 	private final int SUBJECTS_PER_WEEK = 72;
 
@@ -41,10 +40,9 @@ public class XLSX_Parser
 				Cell cell = cellIterator.next();
 
 				if (
-						cell.getCellType() == Cell.CELL_TYPE_STRING     &&
-						cell.getStringCellValue().contains("-")         &&
-						cell.getStringCellValue().length() <= 6
-				   )
+						cell.getCellType() == Cell.CELL_TYPE_STRING &&
+						cell.getStringCellValue().contains("-") &&
+						cell.getStringCellValue().length() <= 6)
 				{
 					groups.add(cell.toString());
 				}
@@ -53,8 +51,13 @@ public class XLSX_Parser
 		return groups;
 	}
 
-	void getSchedule(String group)
+	Object[] getSchedule(String group)
 	{
+		Map<String, String> currentSubjectAndClass = null;
+		Object[] oneAcademicSubject = new Object[2];
+		Object[] dayOfWeek = new Object[6];
+		Object[] scheduleForWeek = new Object[6];
+
 		try
 		{
 			for (Row row : firstSheet)
@@ -70,6 +73,9 @@ public class XLSX_Parser
 						Cell subjectCell;
 						Cell classCell;
 
+						int groupCellRowIndex = cell.getRowIndex();
+						int subjectStartCellRowIndex = groupCellRowIndex + 1;
+
 						int subject = 0;
 						int day = 0;
 
@@ -78,7 +84,7 @@ public class XLSX_Parser
 						String currentSubject = "";
 						String lastSubject = "";
 
-						for (int i = cell.getRowIndex() + 1; ; i++)
+						for (int i = subjectStartCellRowIndex;  i < subjectStartCellRowIndex + SUBJECTS_PER_WEEK; i++)
 						{
 							if (firstSheet.getRow(i).getCell(cell.getColumnIndex()).toString().length() == 0)
 							{
@@ -108,28 +114,19 @@ public class XLSX_Parser
 							subject++;
 							day++;
 
-							if (subject % 2 == 0)
+							if (subject % ACADEMIC_SUBJECT == 0)
 							{
-								if (currentSubject.startsWith(lastSubject.substring(0, 5)))
-								{
-									System.out.println(currentSubject);
-									System.out.println("---------------------");
-								}
-								else
-								{
-									System.out.println(lastSubject);
-									System.out.println(currentSubject);
-									System.out.println("---------------------");
-								}
+								System.out.println(lastSubject);
+								System.out.println(currentSubject);
+								System.out.println("---------------------");
 							}
-
-							lastSubject = currentSubject;
-
-							if (day % 12 == 0)
+							if (day % SUBJECTS_PER_DAY == 0)
 							{
 								System.out.println("----------------------------------------------");
 								isFreeDay = false;
 							}
+
+							lastSubject = currentSubject;
 						}
 					}
 					else {}
@@ -138,7 +135,9 @@ public class XLSX_Parser
 		}
 		catch (Exception e)
 		{
-
+			e.printStackTrace();
 		}
+
+		return scheduleForWeek;
 	}
 }
