@@ -1,6 +1,7 @@
 package com.devplmr;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -12,20 +13,25 @@ import java.util.*;
 
 public class XLSX_Parser
 {
-	XLSX_Parser() throws IOException {}
+	public XLSX_Parser(String pathName) throws IOException
+	{
+		this.pathName = pathName;
+	}
 
 	private final int ACADEMIC_SUBJECT = 2;
 	private final int SUBJECTS_PER_DAY = 12;
 	private final int SUBJECTS_PER_WEEK = 72;
 
-	private File scheduleFile = new File("МТКП_4.xlsx"); // todo automate pathname
-	private FileInputStream fis = new FileInputStream(scheduleFile);
-	private XSSFWorkbook workBook = new XSSFWorkbook(fis);
-	private XSSFSheet firstSheet = workBook.getSheetAt(0);
+	private String pathName;
 
-	List<String> getGroups() throws IOException
+	public List<String> getGroups() throws IOException
 	{
 		List<String> groups = new ArrayList<>();
+
+		File scheduleFile = new File(pathName);
+		FileInputStream fis = new FileInputStream(scheduleFile);
+		XSSFWorkbook workBook = new XSSFWorkbook(fis);
+		XSSFSheet firstSheet = workBook.getSheetAt(0);
 
 		Iterator<Row> rowIterator = firstSheet.rowIterator();
 
@@ -39,10 +45,12 @@ public class XLSX_Parser
 			{
 				Cell cell = cellIterator.next();
 
-				if (
-						cell.getCellType() == Cell.CELL_TYPE_STRING &&
+				if
+				(
+						cell.getCellTypeEnum() == CellType.STRING &&
 						cell.getStringCellValue().contains("-") &&
-						cell.getStringCellValue().length() <= 6)
+						cell.getStringCellValue().length() <= 6
+				)
 				{
 					groups.add(cell.toString());
 				}
@@ -51,12 +59,17 @@ public class XLSX_Parser
 		return groups;
 	}
 
-	Object[] getSchedule(String group)
+	public GroupSchedule getSchedule(String groupName) throws IOException
 	{
-		Map<String, String> currentSubjectAndClass = null;
-		Object[] oneAcademicSubject = new Object[2];
-		Object[] dayOfWeek = new Object[6];
-		Object[] scheduleForWeek = new Object[6];
+		GroupSchedule groupSchedule = new GroupSchedule();
+		groupSchedule.setGroupNameAndFilePath(groupName);
+
+		String[][] subjectAndClass = null;
+
+		File scheduleFile = new File(pathName);
+		FileInputStream fis = new FileInputStream(scheduleFile);
+		XSSFWorkbook workBook = new XSSFWorkbook(fis);
+		XSSFSheet firstSheet = workBook.getSheetAt(0);
 
 		try
 		{
@@ -68,7 +81,7 @@ public class XLSX_Parser
 				{
 					Cell cell = cellIterator.next();
 
-					if (cell.toString().toLowerCase().contains(group.toLowerCase()))
+					if (cell.toString().toLowerCase().contains(groupName.toLowerCase()))
 					{
 						Cell subjectCell;
 						Cell classCell;
@@ -82,16 +95,25 @@ public class XLSX_Parser
 						boolean isFreeDay = false;
 
 						String currentSubject = "";
+						String currentClass = "";
+
 						String lastSubject = "";
+						String lastClass = "";
 
 						for (int i = subjectStartCellRowIndex;  i < subjectStartCellRowIndex + SUBJECTS_PER_WEEK; i++)
 						{
 							if (firstSheet.getRow(i).getCell(cell.getColumnIndex()).toString().length() == 0)
 							{
 								if (isFreeDay)
+								{
 									currentSubject = "Выходной";
+									currentClass = "";
+								}
 								else
-									currentSubject = "<Пустая пара>";
+								{
+									currentSubject = "<Нет пары>";
+									currentClass = "<?>";
+								}
 							}
 							else
 							{
@@ -104,11 +126,40 @@ public class XLSX_Parser
 									{
 										isFreeDay = true;
 										currentSubject = "Выходной";
+										currentClass = "";
 									}
 									else
-										currentSubject = subjectCell.toString().replace("\n", "\\n") + " -- " + classCell.toString();
+									{
+										currentClass = classCell.toString();
+
+										currentSubject = subjectCell.toString();
+
+										if (currentSubject.contains("\n"))
+										{
+											int indexOfN = currentSubject.indexOf("\n");
+											currentSubject = currentSubject.substring(0, indexOfN);
+										}
+										else
+										{
+											/* TODO: REMOVE TEACHER NAMES */
+										}
+
+										if (currentClass.equals(""))
+										{
+											currentClass = "<?>";
+										}
+
+										if (currentClass.contains("."))
+										{
+											int indexOfDot = currentClass.indexOf(".");
+											currentClass = currentClass.substring(0, indexOfDot);
+										}
+									}
 								}
-								else {}
+								else
+								{
+									/* PASS */
+								}
 							}
 
 							subject++;
@@ -116,20 +167,30 @@ public class XLSX_Parser
 
 							if (subject % ACADEMIC_SUBJECT == 0)
 							{
-								System.out.println(lastSubject);
-								System.out.println(currentSubject);
-								System.out.println("---------------------");
+								subjectAndClass = new String[2][2];
+
+								subjectAndClass[0][0] = lastSubject;
+								subjectAndClass[0][1] = lastClass;
+
+								subjectAndClass[1][0] = currentSubject;
+								subjectAndClass[1][1] = currentClass;
+
+								groupSchedule.addSubjectPerDay(subjectAndClass);
 							}
+
 							if (day % SUBJECTS_PER_DAY == 0)
 							{
-								System.out.println("----------------------------------------------");
 								isFreeDay = false;
 							}
 
 							lastSubject = currentSubject;
+							lastClass = currentClass;
 						}
 					}
-					else {}
+					else
+					{
+						/* PASS */
+					}
 				}
 			}
 		}
@@ -138,6 +199,6 @@ public class XLSX_Parser
 			e.printStackTrace();
 		}
 
-		return scheduleForWeek;
+		return groupSchedule;
 	}
 }
