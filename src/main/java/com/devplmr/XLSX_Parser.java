@@ -64,7 +64,7 @@ public class XLSX_Parser
 		GroupSchedule groupSchedule = new GroupSchedule();
 		groupSchedule.setGroupNameAndFilePath(groupName);
 
-		String[][] subjectAndClass = null;
+		String[][] subjectAndClass;
 
 		File scheduleFile = new File(pathName);
 		FileInputStream fis = new FileInputStream(scheduleFile);
