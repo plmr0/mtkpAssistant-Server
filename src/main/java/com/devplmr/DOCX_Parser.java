@@ -1,21 +1,22 @@
 package com.devplmr;
 
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.xwpf.usermodel.IBodyElement;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.*;
 
 public class DOCX_Parser
 {
-
-	public static String [] getChanges(String file, String group)
+	public DayChange getChanges(String file, String groupName)
 	{
+		DayChange dayChange = new DayChange();
+
+		String[] changedSubject;
+
 		boolean isFound = false;
-		String resultLine = "";
-		String [] resultLineList = {"", "", "", "", "", ""};
+
+		dayChange.setGroupName(groupName);
 
 		try
 		{
@@ -29,6 +30,32 @@ public class DOCX_Parser
 			{
 				IBodyElement element = bodyElementIterator.next();
 
+				if ("PARAGRAPH".equalsIgnoreCase(element.getElementType().name()))
+				{
+					List<XWPFParagraph> paragraphList = xdoc.getParagraphs();
+
+					String notFormattedDate;
+
+					for (XWPFParagraph paragraph: paragraphList)
+					{
+						String paragraphText = paragraph.getText().toLowerCase();
+
+						if (paragraphText.contains("года"))
+						{
+							int startIndex = paragraphText.indexOf("на ") + 4;
+							int endIndex = paragraphText.indexOf("года") - 2;
+
+							notFormattedDate = paragraphText.substring(startIndex, endIndex);
+							String [] ChangeDate = notFormattedDate.split("  ");
+
+							boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(ChangeDate));
+							dayChange.setTopWeek(isTopWeek);
+
+							break;
+						}
+					}
+				}
+
 				if ("TABLE".equalsIgnoreCase(element.getElementType().name()))
 				{
 					List<XWPFTable> tableList = element.getBody().getTables();
@@ -37,59 +64,97 @@ public class DOCX_Parser
 					{
 						for (int i = 0; i < table.getRow(0).getTableCells().size(); i++)
 						{
-							if (table.getRow(0).getCell(i).getText().contains(group))
+							if (table.getRow(0).getCell(i).getText().contains(groupName))
 							{
-								if (table.getRow(0).getCell(i).getText().contains("Лефортово"))
+								if (table.getRow(0).getCell(i).getText().toLowerCase().contains("лефор"))
 								{
-									ServerThread.dateOfFileNextDayString += " (Лефортово)";
+									dayChange.setLefortovo(true);
 								}
-								for (int n = 1; n <= table.getNumberOfRows(); n++)
+								else
 								{
+									dayChange.setLefortovo(false);
+								}
+
+								for (int n = 1; n < table.getNumberOfRows(); n++)
+								{
+									changedSubject = new String[2];
+
+									String textAtCurrentCell = table.getRow(n).getCell(i).getText();
+									String lowerCaseTextAtCurrentCell = textAtCurrentCell.toLowerCase();
+
+									String textUnderCurrentCell = table.getRow(n + 1).getCell(i).getText();
+
 									try
 									{
-										if (table.getRow(n).getCell(i + (-1 + i)).getText().equals("группа отпущена"))
+										if (lowerCaseTextAtCurrentCell.contains("отпущ"))
 										{
-											resultLine = "[" + n + "] " + "*ГРУППА ОТПУЩЕНА*";
+											changedSubject[0] = "*ГРУППА ОТПУЩЕНА*";
+											changedSubject[1] = "";
 										}
-										else if (table.getRow(n).getCell(i + (-1 + i)).getText().isEmpty())
+										else if (lowerCaseTextAtCurrentCell.contains("репетиц"))
 										{
-											resultLine = "[" + n + "]";
+											changedSubject[0] = "*РЕПЕТИЦИЯ*";
+											changedSubject[1] = "";
 										}
-										else if ((!table.getRow(n).getCell(i + (-1 + i)).getText().isEmpty()) && (table.getRow(n).getCell(i + (-1 + (i + 1))).getText().isEmpty()))
+										else if (lowerCaseTextAtCurrentCell.contains("консульт"))
 										{
-											resultLine = "[" + n + "] " + table.getRow(n).getCell(i + (-1 + i)).getText() + " - " + "?";
+											changedSubject[0] = "*КОНСУЛЬТАЦИЯ*";
+											changedSubject[1] = textUnderCurrentCell;
+										}
+										else if (lowerCaseTextAtCurrentCell.contains("практ"))
+										{
+											changedSubject[0] = "*ПРАКТИКА*";
+											changedSubject[1] = "";
+										}
+										else if (lowerCaseTextAtCurrentCell.isEmpty())
+										{
+											changedSubject[0] = "";
+											changedSubject[1] = "";
 										}
 										else
-											resultLine = "[" + n + "] " + table.getRow(n).getCell(i + (-1 + i)).getText() + " - " + table.getRow(n).getCell(i + (-1 + (i + 1))).getText();
+										{
+											if ((!textAtCurrentCell.isEmpty()) && (textUnderCurrentCell.isEmpty()))
+											{
+												changedSubject[0] = textAtCurrentCell;
+											    changedSubject[1] = "?";
+											}
+											else
+											{
+												changedSubject[0] = textAtCurrentCell;
+												changedSubject[1] = textUnderCurrentCell;
+											}
+										}
+
+										n += 1;
+
+										dayChange.addSubject(changedSubject);
 									}
 									catch (NullPointerException e)
 									{
-										continue;
+										/* PASS */
 									}
-									resultLineList[n-1] = resultLine;
 								}
 								isFound = true;
 							}
 						}
 						if (isFound)
-							return resultLineList;
+						{
+							dayChange.setChangesAvailable(true);
+							return dayChange;
+						}
 					}
 				}
 			}
 
-			if (!isFound)
-			{
-				resultLineList[0] = "Замен нет.";
-				return resultLineList;
-			}
-
+			dayChange.setChangesAvailable(false);
+			return dayChange;
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
 
-		return resultLineList;
+		return dayChange;
 	}
 
 }
