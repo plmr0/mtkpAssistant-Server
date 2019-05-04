@@ -54,7 +54,7 @@ public class DateParser
 		throw new ArrayIndexOutOfBoundsException("Month number not found.");
 	}
 
-	public static String parseDate(@NotNull String [] inputDate)
+	public static String parseDate(@NotNull String[] inputDate)
 	{
 		String inputDay = inputDate[0];
 		String inputMonth = inputDate[1];
@@ -96,7 +96,7 @@ public class DateParser
 		return date;
 	}
 
-	public static int getWeekNumber(@NotNull String [] inputDate)
+	public static int getWeekNumber(@NotNull String[] inputDate)
 	{
 		String input = parseDate(inputDate);
 		Date date = getDateByString(input);
@@ -108,7 +108,7 @@ public class DateParser
 		return weekNumber;
 	}
 
-	public static int getDayOfWeek(@NotNull String [] inputDate)
+	public static int getDayOfWeek(@NotNull String[] inputDate)
 	{
 		String input = parseDate(inputDate);
 		Date date = getDateByString(input);
