@@ -1,6 +1,7 @@
 package com.devplmr;
 
 import java.io.*;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -46,9 +47,12 @@ public class DOCX_Parser
 							int endIndex = paragraphText.indexOf("года") - 2;
 
 							notFormattedDate = paragraphText.substring(startIndex, endIndex);
-							String [] ChangeDate = notFormattedDate.split("  ");
+							String [] changeDate = notFormattedDate.split("  ");
 
-							boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(ChangeDate));
+							Date dateOfChange = DateParser.getDateByString(DateParser.parseDate(changeDate));
+							dayChange.setDate(dateOfChange);
+
+							boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(changeDate));
 							dayChange.setTopWeek(isTopWeek);
 
 							break;
