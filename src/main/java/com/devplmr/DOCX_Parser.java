@@ -107,8 +107,11 @@ public class DOCX_Parser
 										}
 										else if (lowerCaseTextAtCurrentCell.contains("практ"))
 										{
+											String cuttedString = lowerCaseTextAtCurrentCell.replace("практика", "");
+											String trimmedStringToUpperCase = cuttedString.trim().toUpperCase();
+
 											changedSubject[0] = "*ПРАКТИКА*";
-											changedSubject[1] = "";
+											changedSubject[1] = trimmedStringToUpperCase;
 										}
 										else if (lowerCaseTextAtCurrentCell.isEmpty())
 										{
