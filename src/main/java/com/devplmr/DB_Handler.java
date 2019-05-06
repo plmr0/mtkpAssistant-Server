@@ -1,5 +1,6 @@
 package com.devplmr;
 
+import org.jetbrains.annotations.NotNull;
 import org.sqlite.JDBC;
 
 import java.io.File;
@@ -8,24 +9,30 @@ import java.util.List;
 
 public class DB_Handler
 {
-	public static final String DB_NAME = "assistant_db.sqlite3";
+	private static final String DB_NAME = "assistant_db.sqlite3";
+	private static final String URL = "jdbc:sqlite:" + System.getProperty("user.dir") + "/SQLITE/" + DB_NAME;
 
 	public DB_Handler() throws SQLException
 	{
 		DriverManager.registerDriver(new JDBC());
 
-		File folder = new File("sqlite");
-		if (!folder.exists()) folder.mkdir();
-		else {}
+		File sqliteFolder = new File("SQLITE");
+		if (!sqliteFolder.exists())
+		{
+			sqliteFolder.mkdir();
+		}
+		else
+		{
+			/* PASS */
+		}
 	}
 
 	private Connection connect()
 	{
-		String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/sqlite/" + DB_NAME;
 		Connection conn = null;
 		try
 		{
-			conn = DriverManager.getConnection(url);
+			conn = DriverManager.getConnection(URL);
 		}
 		catch (SQLException e)
 		{
@@ -36,16 +43,16 @@ public class DB_Handler
 
 	public static void createNewDatabase()
 	{
-		String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/sqlite/" + DB_NAME;
-
-		try (Connection conn = DriverManager.getConnection(url))
+		try (Connection conn = DriverManager.getConnection(URL))
 		{
 			if (conn != null)
 			{
 				DatabaseMetaData meta = conn.getMetaData();
 			}
-			else {}
-
+			else
+			{
+				/* PASS */
+			}
 		}
 		catch (SQLException e)
 		{
@@ -55,15 +62,13 @@ public class DB_Handler
 
 	public static void createNewGroupTable()
 	{
-		String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/sqlite/" + DB_NAME;
-
 		String sql = "CREATE TABLE groups\n"
 				+ "(\n"
 				+ "id INTEGER PRIMARY KEY,\n"
 				+ "group_name TEXT NOT NULL\n"
 				+ ");";
 
-		try (Connection conn = DriverManager.getConnection(url);
+		try (Connection conn = DriverManager.getConnection(URL);
 		     Statement stmt = conn.createStatement())
 		{
 			stmt.execute(sql);
@@ -74,7 +79,7 @@ public class DB_Handler
 		}
 	}
 
-	public void insertGroups(List<String> groups)
+	public void insertGroups(@NotNull List<String> groups)
 	{
 		String sql = "INSERT INTO groups(group_name) VALUES(?)";
 
