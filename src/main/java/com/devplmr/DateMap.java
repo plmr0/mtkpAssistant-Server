@@ -5,9 +5,9 @@ import java.util.Map;
 
 public class DateMap
 {
-	public static Map<String, Long> dates = new HashMap<String, Long>();
+	private Map<String, Long> dates = new HashMap<>();
 
-	public static boolean checkChangeMap(String key, long value)
+	public boolean checkValue(String key, long value)
 	{
 		long _value;
 
