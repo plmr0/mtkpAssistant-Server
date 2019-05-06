@@ -29,7 +29,7 @@ public class GroupSchedule implements Serializable
 	public void setGroupNameAndFilePath(String groupName)
 	{
 		this.groupName = groupName;
-		this.filePath = System.getProperty("user.dir") + "\\scheduleFiles\\" + groupName;
+		this.filePath = System.getProperty("user.dir") + "\\SCHEDULE_BY_GROUP_FILES\\" + groupName;
 	}
 
 	@NotNull
@@ -42,6 +42,17 @@ public class GroupSchedule implements Serializable
 	public String getFilePath()
 	{
 		return this.filePath;
+	}
+
+	public void fillNull()
+	{
+		String[] nullStr = new String[] {"<Нет пары>", "<?>"};
+		String[][] nullArr = new String[][] {nullStr, nullStr};
+
+		for (int i = 0; i < 36; i++)
+		{
+			this.wholeWeek.add(nullArr);
+		}
 	}
 
 	public void addSubjectPerDay(@NotNull String[][] subjectPerDay)
@@ -59,7 +70,7 @@ public class GroupSchedule implements Serializable
 		System.out.println("\t\t\t\tРасписание для <" + this.groupName + ">");
 		System.out.println("-------------------------------------------------------");
 
-		for (int i = 0; i < this.getWholeWeek().size(); i++)
+		for (int i = 0; i < this.wholeWeek.size(); i++)
 		{
 			String[][] academicSubject = this.getWholeWeek().get(i);
 
