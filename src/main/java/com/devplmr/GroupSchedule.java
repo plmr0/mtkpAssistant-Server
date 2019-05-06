@@ -15,9 +15,15 @@ public class GroupSchedule implements Serializable
 
 	public GroupSchedule()
 	{
-		File folder = new File("scheduleFiles");
-		if (!folder.exists()) folder.mkdir();
-		else {}
+		File schedule_by_group_files_folder = new File("SCHEDULE_BY_GROUP_FILES");
+		if (!schedule_by_group_files_folder.exists())
+		{
+			schedule_by_group_files_folder.mkdir();
+		}
+		else
+		{
+			/* PASS */
+		}
 	}
 
 	public void setGroupNameAndFilePath(String groupName)
