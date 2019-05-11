@@ -5,6 +5,8 @@ import org.sqlite.JDBC;
 
 import java.io.File;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DB_Handler
@@ -95,6 +97,26 @@ public class DB_Handler
 		catch (SQLException e)
 		{
 			System.out.println(e.getMessage());
+		}
+	}
+
+	public List<String> getGroups()
+	{
+		try (Connection conn = this.connect();
+		     Statement statement = conn.createStatement())
+		{
+			List<String> groups = new ArrayList<>();
+			ResultSet resultSet = statement.executeQuery("SELECT group_name FROM groups");
+			while (resultSet.next())
+			{
+				groups.add(resultSet.getString("group_name"));
+			}
+			return groups;
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+			return Collections.emptyList();
 		}
 	}
 }
