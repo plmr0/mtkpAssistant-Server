@@ -277,5 +277,7 @@ __pycache__/
 /.gradle/vcsWorkingDirs/gc.properties
 /out/production/classes/META-INF/scheduleMTKP-Server_main.kotlin_module
 *.xlsx
-
-
+/GROUP_SCHEDULE_FILES
+/SCHEDULE
+/CHANGES
+/SQLITE
