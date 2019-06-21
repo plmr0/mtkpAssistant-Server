@@ -11,11 +11,15 @@ public class GroupSchedule implements Serializable
 {
 	private String groupName;
 	private String filePath;
-	private List<String[][]> wholeWeek = new ArrayList<>();
+	private List<String[][]> wholeWeek;
 
-	public GroupSchedule()
+	public GroupSchedule(@NotNull String groupName, @NotNull List<String[][]> wholeWeek)
 	{
-		File scheduleByGroupFilesFolder = new File("SCHEDULE_BY_GROUP_FILES");
+		this.groupName = groupName;
+		this.filePath = System.getProperty("user.dir") + "\\GROUP_SCHEDULE_FILES\\" + groupName;
+		this.wholeWeek = wholeWeek;
+
+		File scheduleByGroupFilesFolder = new File("GROUP_SCHEDULE_FILES");
 		if (!scheduleByGroupFilesFolder.exists())
 		{
 			scheduleByGroupFilesFolder.mkdir();
@@ -26,10 +30,17 @@ public class GroupSchedule implements Serializable
 		}
 	}
 
+	@Deprecated
 	public void setGroupNameAndFilePath(String groupName)
 	{
 		this.groupName = groupName;
-		this.filePath = System.getProperty("user.dir") + "\\SCHEDULE_BY_GROUP_FILES\\" + groupName;
+		this.filePath = System.getProperty("user.dir") + "\\GROUP_SCHEDULE_FILES\\" + groupName;
+	}
+
+	@Deprecated
+	public void setWholeWeek(List<String[][]> wholeWeek)
+	{
+		this.wholeWeek = wholeWeek;
 	}
 
 	@NotNull

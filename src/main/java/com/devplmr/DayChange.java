@@ -121,11 +121,14 @@ public class DayChange
 
 	public void debug_printChanges()
 	{
+		System.out.println("-------------------------------------------------------");
 		System.out.println("Замены для " + this.groupName);
 		System.out.println("Неделя верхняя - " + this.isTopWeek);
+		System.out.println("----------------------");
 		for (String[] subject : this.changedDay)
 		{
 			System.out.println(subject[0] + " - " + subject[1]);
 		}
+		System.out.println("-------------------------------------------------------");
 	}
 }

@@ -9,6 +9,7 @@ import java.util.List;
 public class UpdatedDay
 {
 	private List<String[]> updatedDay = new ArrayList<>();
+	private String groupName;
 
 	private boolean isTopWeek = false;
 	private boolean isLefortovo = false;
@@ -25,6 +26,8 @@ public class UpdatedDay
 
 		List<String[]> scheduleForCurrentDay = new ArrayList<>();
 		List<String[][]> fullDay = groupSchedule.getDay(dayChange.getDayOfWeek());
+
+		this.groupName = dayChange.getGroupName();
 
 		int indexForWeek = this.isTopWeek ? 0 : 1;
 
@@ -98,5 +101,18 @@ public class UpdatedDay
 		{
 			this.updatedDay = scheduleForCurrentDay;
 		}
+	}
+
+	public void debug_printUpdatedDay()
+	{
+		System.out.println("-------------------------------------------------------");
+		System.out.println("Итог для " + this.groupName);
+		System.out.println("Дата: " + this.date);
+		System.out.println("----------------------");
+		for (String[] subject : this.updatedDay)
+		{
+			System.out.println(subject[0] + " - " + subject[1]);
+		}
+		System.out.println("-------------------------------------------------------");
 	}
 }
