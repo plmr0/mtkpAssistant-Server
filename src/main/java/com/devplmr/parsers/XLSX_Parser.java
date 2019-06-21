@@ -13,18 +13,11 @@ import java.util.*;
 
 public class XLSX_Parser
 {
-	public XLSX_Parser(String pathName) throws IOException
-	{
-		this.pathName = pathName;
-	}
+	private static final int ACADEMIC_SUBJECT = 2;
+	private static final int SUBJECTS_PER_DAY = 12;
+	private static final int SUBJECTS_PER_WEEK = 72;
 
-	private final int ACADEMIC_SUBJECT = 2;
-	private final int SUBJECTS_PER_DAY = 12;
-	private final int SUBJECTS_PER_WEEK = 72;
-
-	private String pathName;
-
-	public List<String> getGroups() throws IOException
+	public static List<String> getGroups(String pathName) throws IOException
 	{
 		List<String> groups = new ArrayList<>();
 
@@ -59,11 +52,9 @@ public class XLSX_Parser
 		return groups;
 	}
 
-	public GroupSchedule getSchedule(String groupName) throws IOException
+	public static List<String[][]> getSchedule(String pathName, String groupName) throws IOException
 	{
-		GroupSchedule groupSchedule = new GroupSchedule();
-		groupSchedule.setGroupNameAndFilePath(groupName);
-
+		List<String[][]> wholeWeek = new ArrayList<>();
 		String[][] subjectAndClass;
 
 		File scheduleFile = new File(pathName);
@@ -107,7 +98,7 @@ public class XLSX_Parser
 								if (isFreeDay)
 								{
 									currentSubject = "Выходной";
-									currentClass = "";
+									currentClass = "<?>";
 								}
 								else
 								{
@@ -126,7 +117,7 @@ public class XLSX_Parser
 									{
 										isFreeDay = true;
 										currentSubject = "Выходной";
-										currentClass = "";
+										currentClass = "<?>";
 									}
 									else
 									{
@@ -175,7 +166,7 @@ public class XLSX_Parser
 								subjectAndClass[1][0] = currentSubject;
 								subjectAndClass[1][1] = currentClass;
 
-								groupSchedule.addSubjectPerDay(subjectAndClass);
+								wholeWeek.add(subjectAndClass);
 							}
 
 							if (day % SUBJECTS_PER_DAY == 0)
@@ -199,6 +190,6 @@ public class XLSX_Parser
 			e.printStackTrace();
 		}
 
-		return groupSchedule;
+		return wholeWeek;
 	}
 }

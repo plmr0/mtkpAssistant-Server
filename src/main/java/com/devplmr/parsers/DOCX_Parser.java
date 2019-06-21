@@ -12,7 +12,7 @@ import org.apache.poi.xwpf.usermodel.*;
 
 public class DOCX_Parser
 {
-	public DayChange getChanges(String file, String groupName)
+	public static DayChange getChanges(String file, String groupName)
 	{
 		DayChange dayChange = new DayChange();
 
@@ -96,12 +96,12 @@ public class DOCX_Parser
 										if (lowerCaseTextAtCurrentCell.contains("отпущ"))
 										{
 											changedSubject[0] = "*ГРУППА ОТПУЩЕНА*";
-											changedSubject[1] = "";
+											changedSubject[1] = "<?>";
 										}
 										else if (lowerCaseTextAtCurrentCell.contains("репетиц"))
 										{
 											changedSubject[0] = "*РЕПЕТИЦИЯ*";
-											changedSubject[1] = "";
+											changedSubject[1] = "<?>";
 										}
 										else if (lowerCaseTextAtCurrentCell.contains("консульт"))
 										{
