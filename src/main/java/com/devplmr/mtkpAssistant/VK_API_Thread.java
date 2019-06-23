@@ -1,5 +1,6 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
+import com.devplmr.mtkpAssistant.parsers.XLSX_Parser;
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.ServiceActor;
@@ -14,6 +15,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.sql.SQLException;
 import java.util.List;
 
 public class VK_API_Thread extends Thread
@@ -59,6 +61,16 @@ public class VK_API_Thread extends Thread
 	@Override
 	public void run()
 	{
+		DB_Handler db_handler = null;
+		try
+		{
+			db_handler = new DB_Handler();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+
 		TransportClient transportClient = HttpTransportClient.getInstance();
 		VkApiClient vk = new VkApiClient(transportClient);
 		GetResponse getQuery;
@@ -106,7 +118,9 @@ public class VK_API_Thread extends Thread
 
 						if (mapForChanges.checkValue(wallPosts.attachedFile.getCuttedTitleOfFile(), wallPosts.attachedFile.getTimestampOfFileCreation()))
 						{
-							downloadFile(wallPosts.attachedFile.getUrl(), PATH_TO_CHANGES_FOLDER + wallPosts.attachedFile.getTitleOfFile());
+							String changeFilepath = PATH_TO_CHANGES_FOLDER + wallPosts.attachedFile.getTitleOfFile();
+
+							downloadFile(wallPosts.attachedFile.getUrl(), changeFilepath);
 
 							/* TODO: ОБРАБОТКА ЗАМЕН */
 						}
@@ -121,9 +135,21 @@ public class VK_API_Thread extends Thread
 
 						if (mapForSchedule.checkValue(wallPosts.attachedFile.getCuttedTitleOfFile(), wallPosts.attachedFile.getTimestampOfFileCreation()))
 						{
-							downloadFile(wallPosts.attachedFile.getUrl(), PATH_TO_SCHEDULE_FOLDER + wallPosts.attachedFile.getTitleOfFile());
+							String scheduleFilepath = PATH_TO_SCHEDULE_FOLDER + wallPosts.attachedFile.getTitleOfFile();
 
-							/* TODO: ОБРАБОТКА РАСПИСАНИЯ */
+							downloadFile(wallPosts.attachedFile.getUrl(), scheduleFilepath);
+
+							List<String> groupList = XLSX_Parser.getGroups(scheduleFilepath);
+							db_handler.insertGroups(groupList);
+
+							for (String group : groupList)
+							{
+								GroupSchedule groupSchedule = new GroupSchedule(group, XLSX_Parser.getSchedule(scheduleFilepath, group));
+
+								ObjectIO.writeToFile(groupSchedule, groupSchedule.getFilePath());
+							}
+
+							/* TODO: УВЕДОМЛЕНИЕ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ О НОВОМ РАСПИСАНИИ */
 						}
 						else
 						{

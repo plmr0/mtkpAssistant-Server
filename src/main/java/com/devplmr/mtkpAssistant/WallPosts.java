@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import com.vk.api.sdk.objects.wall.WallPostFull;
 import org.jetbrains.annotations.NotNull;
@@ -59,5 +59,5 @@ public class WallPosts
 		}
 	}
 
-	AttachedFile attachedFile = new AttachedFile();
+	public AttachedFile attachedFile = new AttachedFile();
 }

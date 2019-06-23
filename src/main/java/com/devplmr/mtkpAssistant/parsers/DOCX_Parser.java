@@ -1,12 +1,12 @@
-package com.devplmr.parsers;
+package com.devplmr.mtkpAssistant.parsers;
 
 import java.io.*;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.devplmr.DateParser;
-import com.devplmr.DayChange;
+import com.devplmr.mtkpAssistant.DateParser;
+import com.devplmr.mtkpAssistant.DayChange;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xwpf.usermodel.*;
 
@@ -38,29 +38,32 @@ public class DOCX_Parser
 				{
 					List<XWPFParagraph> paragraphList = xdoc.getParagraphs();
 
+					String paragraphText = "";
 					String notFormattedDate;
 
 					for (XWPFParagraph paragraph: paragraphList)
 					{
-						String paragraphText = paragraph.getText().toLowerCase();
-
-						if (paragraphText.contains("года"))
-						{
-							int startIndex = paragraphText.indexOf("на ") + 4;
-							int endIndex = paragraphText.indexOf("года") - 2;
-
-							notFormattedDate = paragraphText.substring(startIndex, endIndex);
-							String [] changeDate = notFormattedDate.split("  ");
-
-							Date dateOfChange = DateParser.getDateByString(DateParser.parseDate(changeDate));
-							dayChange.setDate(dateOfChange);
-
-							boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(changeDate));
-							dayChange.setTopWeek(isTopWeek);
-
-							break;
-						}
+						paragraphText += (' ' + paragraph.getText().toLowerCase());
 					}
+
+					paragraphText = paragraphText
+							.replace("   ", " ")
+							.replace("  ", " ")
+							.replace("\n", "");
+
+					int startIndex = paragraphText.indexOf("на ") + 3;
+					int endIndex = paragraphText.indexOf("года") - 1;
+
+					notFormattedDate = paragraphText.substring(startIndex, endIndex);
+					String [] changeDate = notFormattedDate
+							.replace("  ", " ")
+							.split(" ");
+
+					Date dateOfChange = DateParser.getDateByString(DateParser.parseDate(changeDate));
+					dayChange.setDate(dateOfChange);
+
+					boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(changeDate));
+					dayChange.setTopWeek(isTopWeek);
 				}
 
 				if ("TABLE".equalsIgnoreCase(element.getElementType().name()))
@@ -166,5 +169,4 @@ public class DOCX_Parser
 
 		return dayChange;
 	}
-
 }

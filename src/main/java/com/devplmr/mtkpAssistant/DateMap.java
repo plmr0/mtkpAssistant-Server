@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import java.util.HashMap;
 import java.util.Map;

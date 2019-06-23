@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,7 +13,8 @@ public class DayChange
 	private boolean isLefortovo = false;
 	private boolean isChangesAvailable = false;
 
-	private Date date;
+	private Date dateDate;
+	private String dateString;
 
 	private String groupName;
 
@@ -62,20 +63,26 @@ public class DayChange
 		return this.groupName;
 	}
 
-	public void setDate(Date date)
+	public void setDate(Date dateDate)
 	{
-		this.date = date;
+		this.dateDate = dateDate;
+		this.dateString = DateParser.getStringDate(this.dateDate);
 	}
 
-	public Date getDate()
+	public Date getDateDate()
 	{
-		return this.date;
+		return this.dateDate;
+	}
+
+	public String getDateString()
+	{
+		return this.dateString;
 	}
 
 	public int getDayOfWeek()
 	{
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(this.date);
+		calendar.setTime(this.dateDate);
 
 		int javaDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
 		int myDayOfWeek = -1;
@@ -123,6 +130,7 @@ public class DayChange
 	{
 		System.out.println("-------------------------------------------------------");
 		System.out.println("Замены для " + this.groupName);
+		System.out.println("Дата " + this.getDateString());
 		System.out.println("Неделя верхняя - " + this.isTopWeek);
 		System.out.println("----------------------");
 		for (String[] subject : this.changedDay)

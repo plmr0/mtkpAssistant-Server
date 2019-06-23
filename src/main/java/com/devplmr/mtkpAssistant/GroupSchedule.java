@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +73,14 @@ public class DateParser
 		String parsedDate = inputDay + stringMonth + inputYear;
 
 		return parsedDate;
+	}
+
+	public static String getStringDate(@NotNull Date date)
+	{
+		String dateFormat = "dd.MM.yyyy";
+		SimpleDateFormat df = new SimpleDateFormat(dateFormat);
+
+		return df.format(date);
 	}
 
 	public static Date getDateByString(String inputDate)

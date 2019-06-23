@@ -1,4 +1,4 @@
-package com.devplmr;
+package com.devplmr.mtkpAssistant;
 
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.JDBC;
@@ -96,7 +96,9 @@ public class DB_Handler
 		}
 		catch (SQLException e)
 		{
-			System.out.println(e.getMessage());
+			System.out.println(e.getMessage() + " " + e.getErrorCode());
+			createNewGroupTable();
+			insertGroups(groups);
 		}
 	}
 
