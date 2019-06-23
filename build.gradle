@@ -5,13 +5,13 @@ plugins {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'com.devplmr.Main.Class'
+                'Main-Class': 'com.devplmr.mtkpAssistant.Main'
         )
     }
 }
 
 group 'com.devplmr'
-version '1.0-SNAPSHOT'
+version '2.0'
 
 sourceCompatibility = 1.8
 
@@ -21,7 +21,9 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    
+
+    compile 'org.jetbrains:annotations:17.0.0'
+
     compile 'com.vk.api:sdk:0.5.12'
 
     compile group: 'org.apache.poi', name: 'poi', version: '3.17'
