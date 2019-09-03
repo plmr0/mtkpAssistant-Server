@@ -62,7 +62,7 @@ public class DOCX_Parser
 					Date dateOfChange = DateParser.getDateByString(DateParser.parseDate(changeDate));
 					dayChange.setDate(dateOfChange);
 
-					boolean isTopWeek = !DateParser.getWeekParity(DateParser.getWeekNumber(changeDate));
+					boolean isTopWeek = DateParser.getWeekParity(DateParser.getWeekNumber(changeDate));
 					dayChange.setTopWeek(isTopWeek);
 				}
 
