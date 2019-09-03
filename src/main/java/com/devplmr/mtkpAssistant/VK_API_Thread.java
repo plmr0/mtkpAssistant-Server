@@ -7,7 +7,10 @@ import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
+import com.vk.api.sdk.objects.docs.Doc;
 import com.vk.api.sdk.objects.wall.WallPostFull;
+import com.vk.api.sdk.objects.wall.WallpostAttachment;
+import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
 import com.vk.api.sdk.queries.wall.WallGetFilter;
 
@@ -91,26 +94,38 @@ public class VK_API_Thread extends Thread
 
 				for (WallPostFull wallPost : wallPosts.getWallPosts())
 				{
-					String lowerCaseWallPostText = wallPost.toString().toLowerCase();
-					boolean isChanges;
-					try
+					List<WallpostAttachment> wallpostAttachments = wallPost.getAttachments();
+
+					boolean isChanges = false;
+					boolean isSchedule = false;
+					Doc schedule;
+					Doc changes;
+					String lowerCaseWallpostDocText;
+
+					for (WallpostAttachment wallpostAttachment: wallpostAttachments)
 					{
-						isChanges = lowerCaseWallPostText.contains("замены на ");
-					}
-					catch (NullPointerException e)
-					{
-						isChanges = false;
+						if (wallpostAttachment.getType() == WallpostAttachmentType.DOC)
+						{
+							lowerCaseWallpostDocText = wallpostAttachment.getDoc().getTitle().toLowerCase();
+
+							if (lowerCaseWallpostDocText.contains("замены на "))
+							{
+								isChanges = true;
+								changes = wallpostAttachment.getDoc();
+							}
+							else if (lowerCaseWallpostDocText.contains("мткп") && wallPost.getIsPinned() == 1)
+							{
+								isSchedule = true;
+								schedule = wallpostAttachment.getDoc();
+							}
+						}
 					}
 
-					boolean isSchedule;
-					try
-					{
-						isSchedule = wallPost.getIsPinned() == 1;
-					}
-					catch (NullPointerException e)
-					{
-						isSchedule = false;
-					}
+
+
+					/* TODO: ------------------------------ ПЕРЕПИСАТЬ НИЖЕ ------------------------------ */
+
+
 
 					if (isChanges)
 					{
@@ -160,6 +175,13 @@ public class VK_API_Thread extends Thread
 					{
 						/* OTHER POSTS - PASS */
 					}
+
+
+
+					/* TODO: ------------------------------ ПЕРЕПИСАТЬ ВЫШЕ ------------------------------ */
+
+
+
 				}
 			}
 			catch (ApiException | IOException | ClientException e)
