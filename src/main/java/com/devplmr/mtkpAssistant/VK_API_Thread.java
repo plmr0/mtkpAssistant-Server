@@ -8,6 +8,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.docs.Doc;
+import com.vk.api.sdk.objects.wall.WallPost;
 import com.vk.api.sdk.objects.wall.WallPostFull;
 import com.vk.api.sdk.objects.wall.WallpostAttachment;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
@@ -90,16 +91,10 @@ public class VK_API_Thread extends Thread
 
 				List<WallPostFull> respondedWallPosts = getQuery.getItems();
 
-				WallPosts wallPosts = new WallPosts(respondedWallPosts);
-
-				for (WallPostFull wallPost : wallPosts.getWallPosts())
+				for (WallPostFull wallPost : respondedWallPosts)
 				{
 					List<WallpostAttachment> wallpostAttachments = wallPost.getAttachments();
 
-					boolean isChanges = false;
-					boolean isSchedule = false;
-					Doc schedule;
-					Doc changes;
 					String lowerCaseWallpostDocText;
 
 					for (WallpostAttachment wallpostAttachment: wallpostAttachments)
@@ -110,78 +105,54 @@ public class VK_API_Thread extends Thread
 
 							if (lowerCaseWallpostDocText.contains("замены на "))
 							{
-								isChanges = true;
-								changes = wallpostAttachment.getDoc();
+								DocAsAttachment docAsAttachment = new DocAsAttachment(wallpostAttachment.getDoc());
+
+								if (mapForChanges.checkValue(docAsAttachment.getCuttedTitleOfFile(), docAsAttachment.getTimestampOfFileCreation()))
+								{
+									String changeFilepath = PATH_TO_CHANGES_FOLDER + docAsAttachment.getTitleOfFile();
+
+									downloadFile(docAsAttachment.getUrl(), changeFilepath);
+
+									/* TODO: ОБРАБОТКА ЗАМЕН */
+								}
+								else
+								{
+									/* PASS */
+								}
 							}
 							else if (lowerCaseWallpostDocText.contains("мткп") && wallPost.getIsPinned() == 1)
 							{
-								isSchedule = true;
-								schedule = wallpostAttachment.getDoc();
+								DocAsAttachment docAsAttachment = new DocAsAttachment(wallpostAttachment.getDoc());
+
+								if (mapForSchedule.checkValue(docAsAttachment.getCuttedTitleOfFile(), docAsAttachment.getTimestampOfFileCreation()))
+								{
+									String scheduleFilepath = PATH_TO_SCHEDULE_FOLDER + docAsAttachment.getTitleOfFile();
+
+									downloadFile(docAsAttachment.getUrl(), scheduleFilepath);
+
+									List<String> groupList = XLSX_Parser.getGroups(scheduleFilepath);
+									db_handler.insertGroups(groupList);
+
+									for (String group : groupList)
+									{
+										GroupSchedule groupSchedule = new GroupSchedule(group, XLSX_Parser.getSchedule(scheduleFilepath, group));
+
+										ObjectIO.writeToFile(groupSchedule, groupSchedule.getFilePath());
+									}
+
+									/* TODO: УВЕДОМЛЕНИЕ О НОВОМ РАСПИСАНИИ */
+								}
+								else
+								{
+									/* PASS */
+								}
 							}
-						}
-					}
-
-
-
-					/* TODO: ------------------------------ ПЕРЕПИСАТЬ НИЖЕ ------------------------------ */
-
-
-
-					if (isChanges)
-					{
-						wallPosts.attachedFile.setAttachedFile(wallPost);
-
-						if (mapForChanges.checkValue(wallPosts.attachedFile.getCuttedTitleOfFile(), wallPosts.attachedFile.getTimestampOfFileCreation()))
-						{
-							String changeFilepath = PATH_TO_CHANGES_FOLDER + wallPosts.attachedFile.getTitleOfFile();
-
-							downloadFile(wallPosts.attachedFile.getUrl(), changeFilepath);
-
-							/* TODO: ОБРАБОТКА ЗАМЕН */
-						}
-						else
-						{
-							/* PASS */
-						}
-					}
-					else if (isSchedule)
-					{
-						wallPosts.attachedFile.setAttachedFile(wallPost);
-
-						if (mapForSchedule.checkValue(wallPosts.attachedFile.getCuttedTitleOfFile(), wallPosts.attachedFile.getTimestampOfFileCreation()))
-						{
-							String scheduleFilepath = PATH_TO_SCHEDULE_FOLDER + wallPosts.attachedFile.getTitleOfFile();
-
-							downloadFile(wallPosts.attachedFile.getUrl(), scheduleFilepath);
-
-							List<String> groupList = XLSX_Parser.getGroups(scheduleFilepath);
-							db_handler.insertGroups(groupList);
-
-							for (String group : groupList)
+							else
 							{
-								GroupSchedule groupSchedule = new GroupSchedule(group, XLSX_Parser.getSchedule(scheduleFilepath, group));
-
-								ObjectIO.writeToFile(groupSchedule, groupSchedule.getFilePath());
+								/* OTHER POSTS - PASS */
 							}
-
-							/* TODO: УВЕДОМЛЕНИЕ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ О НОВОМ РАСПИСАНИИ */
-						}
-						else
-						{
-							/* PASS */
 						}
 					}
-					else
-					{
-						/* OTHER POSTS - PASS */
-					}
-
-
-
-					/* TODO: ------------------------------ ПЕРЕПИСАТЬ ВЫШЕ ------------------------------ */
-
-
-
 				}
 			}
 			catch (ApiException | IOException | ClientException e)
