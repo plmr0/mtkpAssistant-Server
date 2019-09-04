@@ -65,16 +65,6 @@ public class VK_API_Thread extends Thread
 	@Override
 	public void run()
 	{
-		DB_Handler db_handler = null;
-		try
-		{
-			db_handler = new DB_Handler();
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-
 		TransportClient transportClient = HttpTransportClient.getInstance();
 		VkApiClient vk = new VkApiClient(transportClient);
 		GetResponse getQuery;
@@ -129,16 +119,6 @@ public class VK_API_Thread extends Thread
 									String scheduleFilepath = PATH_TO_SCHEDULE_FOLDER + docAsAttachment.getTitleOfFile();
 
 									downloadFile(docAsAttachment.getUrl(), scheduleFilepath);
-
-									List<String> groupList = XLSX_Parser.getGroups(scheduleFilepath);
-									db_handler.insertGroups(groupList);
-
-									for (String group : groupList)
-									{
-										GroupSchedule groupSchedule = new GroupSchedule(group, XLSX_Parser.getSchedule(scheduleFilepath, group));
-
-										ObjectIO.writeToFile(groupSchedule, groupSchedule.getFilePath());
-									}
 
 									/* TODO: УВЕДОМЛЕНИЕ О НОВОМ РАСПИСАНИИ */
 								}
