@@ -1,5 +1,6 @@
 package com.devplmr.mtkpAssistant;
 
+import com.devplmr.mtkpAssistant.parsers.DOCX_Parser;
 import com.devplmr.mtkpAssistant.parsers.XLSX_Parser;
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
@@ -24,6 +25,37 @@ import java.util.List;
 
 public class VK_API_Thread extends Thread
 {
+	private File getLastFileModified(String dir)
+	{
+		File fl = new File(dir);
+		File[] files = fl.listFiles(new FileFilter()
+		{
+			public boolean accept(File file)
+			{
+				return file.isFile();
+			}
+		});
+		long lastMod = Long.MIN_VALUE;
+		File choice = null;
+		for (File file : files)
+		{
+			if (file.lastModified() > lastMod)
+			{
+				choice = file;
+				lastMod = file.lastModified();
+			}
+		}
+		return choice;
+	}
+
+	private void downloadFile(String url, String outputFilename) throws IOException
+	{
+		URL website = new URL(url);
+		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+		FileOutputStream fos = new FileOutputStream(outputFilename);
+		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+	}
+
 	public VK_API_Thread()
 	{
 		File scheduleFolder = new File("SCHEDULE");
@@ -47,20 +79,16 @@ public class VK_API_Thread extends Thread
 		}
 	}
 
+	public final String GROUPNAME = "ТМП-72"; // TODO: TEMPORARY
+
 	private static final String USER_DIR = System.getProperty("user.dir");
 	private static final String PATH_TO_SCHEDULE_FOLDER = USER_DIR  + "/SCHEDULE/";
 	private static final String PATH_TO_CHANGES_FOLDER = USER_DIR + "/CHANGES/";
 
+	private String pathToCurrentSchedule = getLastFileModified(PATH_TO_SCHEDULE_FOLDER).toString();
+
 	private DateMap mapForSchedule = new DateMap();
 	private DateMap mapForChanges = new DateMap();
-
-	private void downloadFile(String url, String outputFilename) throws IOException
-	{
-		URL website = new URL(url);
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos = new FileOutputStream(outputFilename);
-		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-	}
 
 	@Override
 	public void run()
@@ -68,6 +96,8 @@ public class VK_API_Thread extends Thread
 		TransportClient transportClient = HttpTransportClient.getInstance();
 		VkApiClient vk = new VkApiClient(transportClient);
 		GetResponse getQuery;
+
+		MyFirebaseAdminService myFirebaseAdminService = new MyFirebaseAdminService();
 
 		while (true)
 		{
@@ -83,7 +113,16 @@ public class VK_API_Thread extends Thread
 
 				for (WallPostFull wallPost : respondedWallPosts)
 				{
-					List<WallpostAttachment> wallpostAttachments = wallPost.getAttachments();
+					List<WallpostAttachment> wallpostAttachments;
+
+					if (wallPost.getAttachments() == null)
+					{
+						continue;
+					}
+					else
+					{
+						wallpostAttachments = wallPost.getAttachments();
+					}
 
 					String lowerCaseWallpostDocText;
 
@@ -103,6 +142,11 @@ public class VK_API_Thread extends Thread
 
 									downloadFile(docAsAttachment.getUrl(), changeFilepath);
 
+									GroupSchedule groupSchedule = new GroupSchedule(GROUPNAME, XLSX_Parser.getSchedule(pathToCurrentSchedule, GROUPNAME));
+									UpdatedDay updatedDay = new UpdatedDay(groupSchedule, DOCX_Parser.getChanges(changeFilepath, GROUPNAME));
+
+									myFirebaseAdminService.sendChanges(updatedDay, true);
+
 									/* TODO: ОБРАБОТКА ЗАМЕН */
 								}
 								else
@@ -119,6 +163,8 @@ public class VK_API_Thread extends Thread
 									String scheduleFilepath = PATH_TO_SCHEDULE_FOLDER + docAsAttachment.getTitleOfFile();
 
 									downloadFile(docAsAttachment.getUrl(), scheduleFilepath);
+
+									pathToCurrentSchedule = scheduleFilepath;
 
 									/* TODO: УВЕДОМЛЕНИЕ О НОВОМ РАСПИСАНИИ */
 								}
