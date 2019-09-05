@@ -149,7 +149,7 @@ public class XLSX_Parser
 								}
 								else
 								{
-									/* PASS */
+									/* CONTAINS DIFFERENT WORD - PASS */
 								}
 							}
 
@@ -180,7 +180,7 @@ public class XLSX_Parser
 					}
 					else
 					{
-						/* PASS */
+						/* NOT A GROUPNAME - PASS */
 					}
 				}
 			}

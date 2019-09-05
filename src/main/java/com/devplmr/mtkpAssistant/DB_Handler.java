@@ -25,7 +25,7 @@ public class DB_Handler
 		}
 		else
 		{
-			/* PASS */
+			/* FOLDER EXISTS - PASS */
 		}
 	}
 
@@ -53,7 +53,7 @@ public class DB_Handler
 			}
 			else
 			{
-				/* PASS */
+				/* NOT CONNECTED TO DB - PASS */
 			}
 		}
 		catch (SQLException e)

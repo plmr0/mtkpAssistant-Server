@@ -144,7 +144,7 @@ public class DOCX_Parser
 									}
 									catch (NullPointerException e)
 									{
-										/* PASS */
+										/* EXCEPTION - PASS */
 									}
 								}
 								isFound = true;
