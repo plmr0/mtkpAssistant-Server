@@ -1,21 +1,41 @@
 package com.devplmr.mtkpAssistant;
 
+import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.messaging.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class MyFirebaseAdminService
 {
-	public MyFirebaseAdminService()
+    private Firestore db;
+
+    private String topic;
+
+	public MyFirebaseAdminService(boolean isDebug)
 	{
+        if (isDebug)
+        {
+            this.topic = "/topics/debug";
+        }
+        else
+        {
+            this.topic = "/topics/push";
+        }
+
         FileInputStream serviceAccount = null;
         try
         {
@@ -40,31 +60,64 @@ public class MyFirebaseAdminService
             e.printStackTrace();
         }
 
-        assert options != null;
         FirebaseApp.initializeApp(options);
+
+        this.db = FirestoreClient.getFirestore();
 	}
 
-	private String isDebugSet(boolean isDebug)
+    private void sendNotification(@NotNull Message message)
     {
-        if (isDebug)
+        String response = null;
+        try
         {
-            return "/topics/debug";
+            response = FirebaseMessaging.getInstance().send(message);
         }
-        else
+        catch (FirebaseMessagingException e)
         {
-            return "/topics/push";
+            e.printStackTrace();
         }
+        System.out.println("Successfully sent message: " + response);
     }
 
-	public void sendScheduleAlert(@NotNull GroupSchedule groupSchedule, boolean isDebug)
+    private void setUsualNotification(String title, String body)
     {
-        /* TODO: УВЕДОМЛЕНИЕ О НОВОМ РАСПИСАНИИ */
+        Message message = Message.builder()
+                .setNotification(new Notification(title, body))
+                .setTopic(this.topic)
+                .build();
+
+        sendNotification(message);
     }
 
-    public void sendChanges(@NotNull UpdatedDay updatedDay, boolean isDebug)
+    private void setCompositeNotification(@NotNull Map<String, String> objectMap)
     {
-        String topic = isDebugSet(isDebug);
+        Message message = Message.builder()
+                .putAllData(objectMap)
+                .setTopic(this.topic)
+                .build();
 
+        sendNotification(message);
+    }
+
+    public void sendNewGroups(@NotNull List<String> groups)
+    {
+        Map<String, String> objectMap = new HashMap<>();
+
+        objectMap.put("channel_id", "schedule");
+        try
+        {
+            objectMap.put("groups", ObjectSerialization.toString((Serializable) groups));
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        setCompositeNotification(objectMap);
+    }
+
+    public void sendChanges(@NotNull UpdatedDay updatedDay)
+    {
         String subjects = "";
 
         for (int i = 0; i < 6; i++)
@@ -97,20 +150,27 @@ public class MyFirebaseAdminService
             e.printStackTrace();
         }
 
-        Message message = Message.builder()
-                .putAllData(objectMap)
-                .setTopic(topic)
-                .build();
+        setCompositeNotification(objectMap);
+    }
 
-        String response = null;
-        try
+    public void addNewGroupsToFirestore(@NotNull List<String> groupList)
+    {
+        for (String group : groupList)
         {
-            response = FirebaseMessaging.getInstance().send(message);
+            Map<String, Object> groups = new HashMap<>();
+            groups.put("subscribers", 0);
+            ApiFuture<WriteResult> future = db
+                    .collection("groups")
+                    .document(group)
+                    .set(groups);
+            try
+            {
+                System.out.println("Update time : " + future.get().getUpdateTime());
+            }
+            catch (InterruptedException | ExecutionException e)
+            {
+                e.printStackTrace();
+            }
         }
-        catch (FirebaseMessagingException e)
-        {
-            e.printStackTrace();
-        }
-        System.out.println("Successfully sent message: " + response); // Debug
     }
 }

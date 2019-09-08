@@ -8,8 +8,6 @@ import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
-import com.vk.api.sdk.objects.docs.Doc;
-import com.vk.api.sdk.objects.wall.WallPost;
 import com.vk.api.sdk.objects.wall.WallPostFull;
 import com.vk.api.sdk.objects.wall.WallpostAttachment;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
@@ -20,7 +18,6 @@ import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.sql.SQLException;
 import java.util.List;
 
 public class VK_API_Thread extends Thread
@@ -28,13 +25,7 @@ public class VK_API_Thread extends Thread
 	private File getLastFileModified(String dir)
 	{
 		File fl = new File(dir);
-		File[] files = fl.listFiles(new FileFilter()
-		{
-			public boolean accept(File file)
-			{
-				return file.isFile();
-			}
-		});
+		File[] files = fl.listFiles(file -> file.isFile());
 		long lastMod = Long.MIN_VALUE;
 		File choice = null;
 		for (File file : files)
@@ -56,27 +47,23 @@ public class VK_API_Thread extends Thread
 		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 	}
 
+	private void createDir(String dir)
+    {
+        File scheduleFolder = new File(dir);
+        if (!scheduleFolder.exists())
+        {
+            scheduleFolder.mkdir();
+        }
+        else
+        {
+            /* FOLDER EXISTS - PASS */
+        }
+    }
+
 	public VK_API_Thread()
 	{
-		File scheduleFolder = new File("SCHEDULE");
-		if (!scheduleFolder.exists())
-		{
-			scheduleFolder.mkdir();
-		}
-		else
-		{
-			/* PASS */
-		}
-
-		File changesFolder = new File("CHANGES");
-		if (!changesFolder.exists())
-		{
-			changesFolder.mkdir();
-		}
-		else
-		{
-			/* PASS */
-		}
+		createDir("SCHEDULE");
+		createDir("CHANGES");
 	}
 
 	public final String GROUPNAME = "ТМП-72"; // TODO: TEMPORARY
@@ -97,7 +84,7 @@ public class VK_API_Thread extends Thread
 		VkApiClient vk = new VkApiClient(transportClient);
 		GetResponse getQuery;
 
-		MyFirebaseAdminService myFirebaseAdminService = new MyFirebaseAdminService();
+		MyFirebaseAdminService myFirebaseAdminService = new MyFirebaseAdminService(true);
 
 		while (true)
 		{
@@ -145,13 +132,13 @@ public class VK_API_Thread extends Thread
 									GroupSchedule groupSchedule = new GroupSchedule(GROUPNAME, XLSX_Parser.getSchedule(pathToCurrentSchedule, GROUPNAME));
 									UpdatedDay updatedDay = new UpdatedDay(groupSchedule, DOCX_Parser.getChanges(changeFilepath, GROUPNAME));
 
-									myFirebaseAdminService.sendChanges(updatedDay, true);
+									myFirebaseAdminService.sendChanges(updatedDay);
 
 									/* TODO: ОБРАБОТКА ЗАМЕН */
 								}
 								else
 								{
-									/* PASS */
+									/* ALREADY POSTED - PASS */
 								}
 							}
 							else if (lowerCaseWallpostDocText.contains("мткп") && wallPost.getIsPinned() == 1)
@@ -166,11 +153,13 @@ public class VK_API_Thread extends Thread
 
 									pathToCurrentSchedule = scheduleFilepath;
 
+									myFirebaseAdminService.sendNewGroups(XLSX_Parser.getGroups(pathToCurrentSchedule));
+
 									/* TODO: УВЕДОМЛЕНИЕ О НОВОМ РАСПИСАНИИ */
 								}
 								else
 								{
-									/* PASS */
+									/* ALREADY POSTED - PASS */
 								}
 							}
 							else
