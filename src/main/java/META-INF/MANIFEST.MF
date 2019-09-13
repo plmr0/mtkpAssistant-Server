@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: com.devplmr.Main
+Main-Class: com.devplmr.mtkpAssistant.Main
 
