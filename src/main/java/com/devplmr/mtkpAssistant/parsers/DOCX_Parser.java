@@ -54,6 +54,11 @@ public class DOCX_Parser
 					int startIndex = paragraphText.indexOf("на ") + 3;
 					int endIndex = paragraphText.indexOf("года") - 1;
 
+					if (endIndex < 0)
+					{
+						endIndex = paragraphText.indexOf("г.");
+					}
+
 					notFormattedDate = paragraphText.substring(startIndex, endIndex);
 					String [] changeDate = notFormattedDate
 							.replace("  ", " ")

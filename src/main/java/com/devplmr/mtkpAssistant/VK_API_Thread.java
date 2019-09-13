@@ -141,7 +141,7 @@ public class VK_API_Thread extends Thread
 									/* ALREADY POSTED - PASS */
 								}
 							}
-							else if (lowerCaseWallpostDocText.contains("мткп") && wallPost.getIsPinned() == 1)
+							else if ((lowerCaseWallpostDocText.contains("мткп") && wallPost.getIsPinned() != null) || (lowerCaseWallpostDocText.contains("мткп_") && lowerCaseWallpostDocText.contains(".xlsx")))
 							{
 								DocAsAttachment docAsAttachment = new DocAsAttachment(wallpostAttachment.getDoc());
 
@@ -179,7 +179,7 @@ public class VK_API_Thread extends Thread
 			{
 				Thread.sleep(20000);
 			}
-			catch (InterruptedException ie)
+		 	catch (InterruptedException ie)
 			{
 				ie.printStackTrace();
 			}

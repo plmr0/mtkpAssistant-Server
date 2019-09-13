@@ -1,12 +1,8 @@
 package com.devplmr.mtkpAssistant;
 
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.messaging.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,12 +13,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class MyFirebaseAdminService
 {
-    private Firestore db;
-
     private String topic;
 
 	public MyFirebaseAdminService(boolean isDebug)
@@ -61,8 +54,6 @@ public class MyFirebaseAdminService
         }
 
         FirebaseApp.initializeApp(options);
-
-        this.db = FirestoreClient.getFirestore();
 	}
 
     private void sendNotification(@NotNull Message message)
@@ -151,26 +142,5 @@ public class MyFirebaseAdminService
         }
 
         setCompositeNotification(objectMap);
-    }
-
-    public void addNewGroupsToFirestore(@NotNull List<String> groupList)
-    {
-        for (String group : groupList)
-        {
-            Map<String, Object> groups = new HashMap<>();
-            groups.put("subscribers", 0);
-            ApiFuture<WriteResult> future = db
-                    .collection("groups")
-                    .document(group)
-                    .set(groups);
-            try
-            {
-                System.out.println("Update time : " + future.get().getUpdateTime());
-            }
-            catch (InterruptedException | ExecutionException e)
-            {
-                e.printStackTrace();
-            }
-        }
     }
 }
